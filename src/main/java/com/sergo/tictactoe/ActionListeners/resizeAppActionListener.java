@@ -1,8 +1,8 @@
-package com.sergo.tictaktoe.ActionListeners;
+package com.sergo.tictactoe.ActionListeners;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import com.sergo.tictaktoe.AppLauncher;
+import com.sergo.tictactoe.AppLauncher;
 
 public class resizeAppActionListener implements ActionListener {
     private AppLauncher app;

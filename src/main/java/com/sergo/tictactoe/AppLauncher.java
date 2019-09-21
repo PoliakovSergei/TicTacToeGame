@@ -1,7 +1,7 @@
-package com.sergo.tictaktoe;
+package com.sergo.tictactoe;
 
-import com.sergo.tictaktoe.ActionListeners.resizeAppActionListener;
-import com.sergo.tictaktoe.Actions.ExitAction;
+import com.sergo.tictactoe.ActionListeners.resizeAppActionListener;
+import com.sergo.tictactoe.Actions.ExitAction;
 
 import javax.swing.*;
 import javax.swing.border.BevelBorder;

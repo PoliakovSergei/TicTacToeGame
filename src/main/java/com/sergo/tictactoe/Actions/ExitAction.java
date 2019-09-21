@@ -1,4 +1,4 @@
-package com.sergo.tictaktoe.Actions;
+package com.sergo.tictactoe.Actions;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
