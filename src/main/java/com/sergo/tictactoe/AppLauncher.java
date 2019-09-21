@@ -1,7 +1,10 @@
 package com.sergo.tictactoe;
 
-import com.sergo.tictactoe.ActionListeners.resizeAppActionListener;
+import com.google.common.collect.Table;
+import com.sergo.tictactoe.ActionListeners.NumberedMouseListener;
+import com.sergo.tictactoe.ActionListeners.ResizeAppActionListener;
 import com.sergo.tictactoe.Actions.ExitAction;
+import com.sergo.tictactoe.enums.*;
 
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
@@ -9,17 +12,18 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.concurrent.TimeUnit;
 
 public class AppLauncher extends JFrame {
 
     private static AppLauncher instance;
+    private static CellState winner = null;
     private final static int windowSize = 300;
-    private static CellState gameField[][] = new CellState[3][3];
+    private static CellState[][] gameField = new CellState[3][3];
     private static boolean isAIon = false;
     private static boolean isCrossTurn = true;
     private static boolean isNoughtTurn = false;
+    private static boolean isGameEnded = false;
 
     public static void main(String[] args) {
         AppLauncher app = AppLauncher.getInstance();
@@ -28,77 +32,117 @@ public class AppLauncher extends JFrame {
         gameFunction();
     }
 
-    private static boolean gameFunction() {
+    private static void gameFunction() {
         while (true) {
-            checkGameEndState();
-            //TODO
             waitForCrossTurn();
-            waitForNoughtTurn();
+            if (checkGameEndState()){
+                endGameProcess();
+            }
+            else {
+                waitForNoughtTurn();
+                if (checkGameEndState()) {
+                    endGameProcess();
+                }
+            }
         }
     }
 
-    private static boolean waitForNoughtTurn(){
+    private static boolean waitForNoughtTurn() {
         isNoughtTurn = true;
-        while(isNoughtTurn){
+        while (isNoughtTurn) {
             try {
                 TimeUnit.MILLISECONDS.sleep(10);
+            } catch (InterruptedException e) {
             }
-            catch (InterruptedException e){}
         }
         return true;
     }
 
-    private static boolean waitForCrossTurn(){
+    private static boolean waitForCrossTurn() {
         isCrossTurn = true;
-        while(isCrossTurn){
+        while (isCrossTurn) {
             try {
                 TimeUnit.MILLISECONDS.sleep(10);
+            } catch (InterruptedException e) {
             }
-            catch (InterruptedException e){}
         }
         return true;
     }
 
     private static boolean checkGameEndState() {
-        CellState winner = null;
-        if((winner = checkEndByRows())==null){
-            if((winner = checkEndByColumns())==null) {
+        if ((winner = checkEndByRows()) == null) {
+            if ((winner = checkEndByColumns()) == null) {
                 if ((winner = checkEndByDiagonals()) == null) {
-                    return false;
+                    if((winner = checkEndByDraw()) == null) {
+                        return false;
+                    }
                 }
             }
         }
-        endGameProcess(winner);
         return true;
     }
 
-    private static boolean endGameProcess(CellState winner){
-        //TODO
-        // Вывод окна с победившей стороной
+    private static boolean endGameProcess() {
+        isGameEnded = true;
+        if(winner != CellState.EMPTY){
+            System.out.println(winner.toString() + " is winner!");
+            int choose = JOptionPane.showConfirmDialog(getInstance(),
+                    winner.toString() + " won! Restart?",
+                    "We found a winner!",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.INFORMATION_MESSAGE);
+            if(choose == JOptionPane.YES_OPTION){
+                restartGame();
+            }
+        }
+        else{
+            System.out.println("Draw!");
+            int choose = JOptionPane.showConfirmDialog(getInstance(),
+                    "Draw! Restart?",
+                    "Draw!",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.INFORMATION_MESSAGE);
+            if(choose == JOptionPane.YES_OPTION){
+                restartGame();
+            }
+        }
         return true;
     }
 
-    private static CellState checkEndByRows(){
-        for(int i = 0; i < 3; i++){
-            if(gameField[i][0]!=CellState.EMPTY&&gameField[i][0]==gameField[i][1]&&gameField[i][1]==gameField[i][2]){
+    private static CellState checkEndByDraw(){
+        for (int i = 0; i < 3; i++) {
+            for(int j = 0; j < 3; j++) {
+                if (gameField[i][j] == CellState.EMPTY ) {
+                    return null;
+                }
+            }
+        }
+        return CellState.EMPTY;
+    }
+
+    private static CellState checkEndByRows() {
+        for (int i = 0; i < 3; i++) {
+            if (gameField[i][0] != CellState.EMPTY && gameField[i][0] == gameField[i][1] && gameField[i][1] == gameField[i][2]) {
                 return gameField[i][0];
             }
         }
         return null;
     }
-    private static CellState checkEndByColumns(){
-        for(int i = 0; i < 3; i++){
-            if(gameField[0][i]!=CellState.EMPTY&&gameField[0][i]==gameField[1][i]&&gameField[1][i]==gameField[2][i]){
+
+    private static CellState checkEndByColumns() {
+        for (int i = 0; i < 3; i++) {
+            if (gameField[0][i] != CellState.EMPTY && gameField[0][i] == gameField[1][i] && gameField[1][i] == gameField[2][i]) {
                 return gameField[0][i];
             }
         }
         return null;
     }
-    private static CellState checkEndByDiagonals(){
-        if(gameField[0][0]!=CellState.EMPTY&&gameField[0][0]==gameField[1][1]&&gameField[1][1]==gameField[2][2]){
+
+    private static CellState checkEndByDiagonals() {
+        if (gameField[0][0] != CellState.EMPTY && gameField[0][0] == gameField[1][1] && gameField[1][1] == gameField[2][2]) {
             return gameField[0][0];
         }
-        if(gameField[0][2]!=CellState.EMPTY&&gameField[0][2]==gameField[1][1]&&gameField[1][1]==gameField[2][0]){
+        if (gameField[0][2] != CellState.EMPTY && gameField[0][2] == gameField[1][1] && gameField[1][1] == gameField[2][0]) {
             return gameField[0][2];
         }
         return null;
@@ -121,20 +165,26 @@ public class AppLauncher extends JFrame {
 
     private static void fillWithComponents() {
         for (int i = 0; i < 9; i++) {
-            JPanel gamePanel = new JPanel();
-            gamePanel.addMouseListener(new MouseListener() {
+            gameCell gamePanel = new gameCell(i);
+            gamePanel.addMouseListener(new NumberedMouseListener(i) {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                    if(AppLauncher.isCrossTurn){
-                        //TODO
-                        AppLauncher.isCrossTurn = false;
-                        ((JLabel) instance.getContentPane().getComponent(11)).setText("Ходит: 'O'");
-                    }
-                    else{
-                        if(!isAIon){
-                            //TODO second player mechanic
-                            AppLauncher.isNoughtTurn = false;
-                            ((JLabel) instance.getContentPane().getComponent(11)).setText("Ходит: 'X'");
+                    if (((gameCell) getInstance().getContentPane().getComponent(getNum())).getCurrState() == CellState.EMPTY
+                            && !getInstance().getGameEndState()) {
+                        if (AppLauncher.isCrossTurn) {
+                            AppLauncher.isCrossTurn = false;
+                            ((JLabel) instance.getContentPane().getComponent(11)).setText("Ходит: 'O'");
+                            (instance.getGameField())[getNum() / 3][getNum() % 3] = CellState.CROSS;
+                            //instance.getContentPane().getComponent(getNum()).setBackground(Color.RED);
+                            ((gameCell)instance.getContentPane().getComponent(getNum())).repaint(CellState.CROSS);
+                        } else {
+                            if (!isAIon) {
+                                AppLauncher.isNoughtTurn = false;
+                                ((JLabel) instance.getContentPane().getComponent(11)).setText("Ходит: 'X'");
+                                (instance.getGameField())[getNum() / 3][getNum() % 3] = CellState.NOUGHT;
+                                //instance.getContentPane().getComponent(getNum()).setBackground(Color.blue);
+                                ((gameCell)instance.getContentPane().getComponent(getNum())).repaint(CellState.NOUGHT);
+                            }
                         }
                     }
                 }
@@ -191,14 +241,18 @@ public class AppLauncher extends JFrame {
         return gameMenu;
     }
 
-    private static void restartGame(){
+    private static void restartGame() {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 gameField[i][j] = CellState.EMPTY;
+                ((gameCell)getInstance().getContentPane().getComponent(i * 3 + j)).repaint(CellState.EMPTY);
             }
         }
         ((JLabel) getInstance().getContentPane().getComponent(11)).setText("Ходит: 'Х'");
-        //TODO Закрытие информационных окон
+        winner = null;
+        isNoughtTurn = false;
+        isCrossTurn = true;
+        isGameEnded = false;
     }
 
     private static JMenu createViewMenu(AppLauncher app) {
@@ -209,8 +263,8 @@ public class AppLauncher extends JFrame {
         ButtonGroup buttonGroup = new ButtonGroup();
         for (int i = startSize; i <= startSize + wSizesCount * wSizeStep; i += wSizeStep) {
             JRadioButtonMenuItem menuButton = new JRadioButtonMenuItem(
-                    String.valueOf(i) + "x" + String.valueOf(i));
-            menuButton.addActionListener(new resizeAppActionListener(app, i));
+                    i + "x" + i);
+            menuButton.addActionListener(new ResizeAppActionListener(app, i));
             buttonGroup.add(menuButton);
             viewMenu.add(menuButton);
             if (i == AppLauncher.windowSize) {
@@ -223,20 +277,10 @@ public class AppLauncher extends JFrame {
     private static JMenu createOpponentChooseMenu() {
         JMenu oppMenu = new JMenu("Выбор противника");
         JRadioButtonMenuItem playerWithPlayer = new JRadioButtonMenuItem("Player VS Player");
-        JRadioButtonMenuItem playerWithAI = new JRadioButtonMenuItem("Player VS AI");
+        JRadioButtonMenuItem playerWithAI = new JRadioButtonMenuItem("Player VS AI (In progress)");
 
-        playerWithPlayer.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                isAIon = false;
-            }
-        });
-        playerWithAI.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                isAIon = true;
-            }
-        });
+        playerWithPlayer.addActionListener(actionEvent -> isAIon = false);
+        playerWithAI.addActionListener(actionEvent -> isAIon = true);
 
         ButtonGroup buttonGroup = new ButtonGroup();
         playerWithPlayer.setSelected(true);
@@ -253,6 +297,10 @@ public class AppLauncher extends JFrame {
         return windowSize;
     }
 
+    public boolean getGameEndState() {
+        return isGameEnded;
+    }
+
     public static AppLauncher getInstance() {
         if (instance == null) {
             instance = new AppLauncher();
@@ -261,19 +309,7 @@ public class AppLauncher extends JFrame {
         return instance;
     }
 
-    enum CellState {
-        NOUGHT{
-            @Override
-            public String toString() {
-                return "Noughts";
-            }
-        },
-        CROSS{
-            @Override
-            public String toString(){
-                return "Crosses";
-            }
-        },
-        EMPTY
+    public CellState[][] getGameField() {
+        return gameField;
     }
 }

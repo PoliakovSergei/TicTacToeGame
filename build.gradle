@@ -17,6 +17,30 @@ plugins {
 compileJava.options.encoding = 'UTF-8'
 compileTestJava.options.encoding = 'UTF-8'
 
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+jar{
+    copy{
+        from "/src/main/java/resources"
+        into "$buildDir/libs"
+        include "**/*"
+    }
+    manifest{
+        attributes(
+                'Main-Class':'com.sergo.tictactoe.AppLauncher'
+        )
+    }
+}
+
+build{
+    copy{
+        from "/src/main/java/resources"
+        into "/"
+        include "**/*"
+    }
+}
+
 repositories {
     // Use jcenter for resolving dependencies.
     // You can declare any Maven/Ivy/file repository here.
@@ -35,5 +59,5 @@ dependencies {
 application {
     // Define the main class for the application
     mainClassName = 'com.sergo.tictactoe.AppLauncher'
-    version '1.0.0'
+    version '1.1.0'
 }
